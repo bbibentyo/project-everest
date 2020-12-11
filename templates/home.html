@@ -1,45 +1,35 @@
 {%  extends "layout.html" %}
+{% load static %}
 
 {% block contents %}
-<div class="container">
+<div class="container-fluid">
     <div class="mt-4"></div>
     <div class="mt-4"></div>
-    <div class="row">
-        <div class="col">
+    <div class="row ">
+        <div class="col-lg-12">
             <div class="card">
-                <div class="card-header text-center">Sensors</div>
+                <div class="card-header bg-info text-center">Temperature</div>
                 <div class="card-body">
-                    <p class="card-text">I will add sensor here</p>
-                </div>
-                <div class="card-footer">
-                    <a href="#">more</a>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card">
-                <div class="card-header text-center">Temperature</div>
-                <div class="card-body">
-                    <p class="card-text">I will add temperature readings here</p>
-                </div>
-                <div class="card-footer text-right">
-                    <a href="#">more</a>
+                    <div id="temperature-container" class="container-fluid">
+                        <canvas id="temperature-chart" data-url="{%  url 'device_temperature' %}" style="width: 95%;"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="row mt-4">
-        <div class="col">
+        <div class="col-lg-12">
             <div class="card">
-                <div class="card-header text-center">Humidity</div>
+                <div class="card-header bg-warning text-center">Humidity</div>
                 <div class="card-body">
-                    <p class="card-text">I will add Humidity readings here</p>
-                </div>
-                <div class="card-footer">
-                    <a href="#">more</a>
+                    <div id="humidity-container" class="container-fluid">
+                        <canvas id="humidity-chart" data-url="{%  url 'device_humidity' %}" style="width: 95%;"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    <div class="row mt-4">
         <div class="col">
             <div class="card">
                 <div class="card-header text-center">Proximity</div>
@@ -55,9 +45,24 @@
     <div class="row mt-4">
         <div class="col">
             <div class="card">
-                <div class="card-header text-center">Coordinates</div>
+                <div class="card-header text-center">Sensors</div>
                 <div class="card-body">
-                    <p class="card-text">I will add X, Y, Z readings here</p>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Last Transmission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for device in devices %}
+                            <tr>
+                                <td>{{ device.0 }}</td>
+                                <td>{{ device.1 }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
                 <div class="card-footer">
                     <a href="#">more</a>
@@ -65,16 +70,38 @@
             </div>
         </div>
         <div class="col">
-            <div class="card">
-                <div class="card-header text-center">Sensor Configuration</div>
-                <div class="card-body">
-                    <p class="card-text">I will add sensor configuration here</p>
-                </div>
-                <div class="card-footer text-right">
-                    <a href="#">more</a>
-                </div>
-            </div>
+
         </div>
     </div>
+{#    <div class="row mt-4">#}
+{#        <div class="col">#}
+{#            <div class="card">#}
+{#                <div class="card-header text-center">Coordinates</div>#}
+{#                <div class="card-body">#}
+{#                    <p class="card-text">I will add X, Y, Z readings here</p>#}
+{#                </div>#}
+{#                <div class="card-footer">#}
+{#                    <a href="#">more</a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="col">#}
+{#            <div class="card">#}
+{#                <div class="card-header text-center">Sensor Configuration</div>#}
+{#                <div class="card-body">#}
+{#                    <p class="card-text">I will add sensor configuration here</p>#}
+{#                </div>#}
+{#                <div class="card-footer text-right">#}
+{#                    <a href="#">more</a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="{% static 'js/home.js' %}"></script>
 {% endblock %}

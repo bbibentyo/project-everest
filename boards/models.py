@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 
@@ -9,6 +10,7 @@ class Sensor(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     location = models.CharField(max_length=50, null=True, blank=True)
     comments = models.CharField(max_length=250, null=True, blank=True)
+    color = models.CharField(max_length=10, null=True, blank=True)
 
     @property
     def readable_name(self):
@@ -22,7 +24,7 @@ class Sensor(models.Model):
 
 
 class SensorData(models.Model):
-    date_received = models.DateTimeField(auto_now_add=True)
+    date_received = models.DateTimeField(default=timezone.now)
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     temperature = models.FloatField()
     humidity = models.FloatField()
