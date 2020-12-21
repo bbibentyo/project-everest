@@ -4,7 +4,7 @@ import pandas as pd
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import connection, transaction
+from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
@@ -107,27 +107,44 @@ class SensorDataView(APIView):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @transaction.atomic
     def post(self, request, *args, **kwargs):
         data = request.data
-        parts = list(map(str.strip, data.split(",")))
-        if len(parts) < 6:
-            return Response({'error': 'invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+        if isinstance(data, str):
+            parts = list(map(str.strip, data.split(",")))
+            if len(parts) < 3:
+                return Response({'error': 'invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
-        sensor, created = models.Sensor.objects.get_or_create(identifier=parts[0])
-        sensor_data = models.SensorData(
-            sensor=sensor, temperature=float(parts[1]), humidity=float(parts[2]),
-            x_coordinate=float(parts[3]), y_coordinate=float(parts[4]),
-            z_coordinate=float(parts[5]))
-        sensor_data.save()
+            try:
+                sensor, created = models.Sensor.objects.get_or_create(identifier=parts[0])
+                sensor_data = models.SensorData(
+                    sensor=sensor, temperature=float(parts[1]), humidity=float(parts[2]))
+                sensor_data.save()
+            except Exception as e:
+                print("error occurred when saving node data")
+                print(f"{e}")
+                return Response({'error': 'invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if len(parts) > 7:
-            for device in parts[7:]:
-                if not device:
-                    continue
-                neighbor, distance = device.split(":")
-                neighbor_sensor, created = models.Sensor.objects.get_or_create(identifier=neighbor)
-                proximity = models.ProximityData(
-                    batch=sensor_data, target=neighbor_sensor, distance=float(distance))
-                proximity.save()
-        return Response({}, status=status.HTTP_201_CREATED)
+            if len(parts) > 3:
+                number_of_neighbors = int(parts[3])
+                if number_of_neighbors > 0:
+                    for device in parts[4:]:
+                        if not device:
+                            print("skipping null device")
+                            continue
+                        try:
+                            neighbor, distance = device.split(":")
+                            print(f"adding proximity for device: {neighbor} -> distance: {distance}")
+                            neighbor_sensor, created = models.Sensor.objects.get_or_create(identifier=neighbor)
+                            proximity = models.ProximityData(
+                                batch=sensor_data, target=neighbor_sensor, distance=float(distance))
+                            proximity.save()
+                        except Exception as e:
+                            print("exception occurred when saving proximity data")
+                            print(f"{e}")
+                            continue
+            return Response({}, status=status.HTTP_201_CREATED)
+        return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def ping(request, *args, **kwargs):
+    return JsonResponse({'status': 'alive'}, safe=True, status=status.HTTP_200_OK)
