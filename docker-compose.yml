@@ -1,10 +1,12 @@
-version: "3.3"
+version: "3.7"
 
 services:
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    build: ./src
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 everest.wsgi:application
     volumes:
-      - .:/src
+      - ./src:/code
     ports:
       - "8000:8000"
+    environment:
+      - DJANGO_DEBUG=1

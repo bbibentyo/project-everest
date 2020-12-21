@@ -15,9 +15,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = ")8anj3r-1yfb2aak#6r_%_d(w!^kx1ayvi_v-079ghd04s-dos"
 
-DEBUG = True
+DEBUG = bool(os.getenv('DJANGO_DEBUG', 1))
 
 ALLOWED_HOSTS = ['*']
 
@@ -102,10 +102,7 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static"
-]
+STATIC_ROOT = 'static/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
