@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.8.6
 ENV PYTHONUNBUFFERED=1
 
 ENV APP_HOME=/code
@@ -12,5 +12,7 @@ WORKDIR $APP_HOME
 COPY . $APP_HOME
 
 RUN pip install -r requirements.txt
+
+ENV IN_CONTAINER 1
 
 ENTRYPOINT ["/code/entrypoint.sh"]

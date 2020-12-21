@@ -46,21 +46,23 @@ def _hourly_range(delta=24):
 
 def device_temperature(request, *args, **kwargs):
     last_24_hours = timezone.now() - datetime.timedelta(days=2)
-    objects = models.SensorData.objects.select_related('sensor').order_by('sensor_date_time')
-    #.filter(sensor_date_time__gte=last_24_hours).order_by('-sensor_date_time')
+    objects = models.SensorData.objects.select_related('sensor').filter(
+        sensor_date_time__gte=last_24_hours).order_by('-sensor_date_time')
     frame = pd.DataFrame(
         [dict(device=x.sensor.readable_name,
               x=x.sensor_date_time, y=x.temperature, borderColor=x.sensor.color)
          for x in objects])
 
-    labels = _hourly_range(48)
+    if frame.empty:
+        return JsonResponse({'datasets': []})
+
     datasets = []
     frame['x'] = frame['x'].dt.strftime(date_format)
     for name, g in frame.groupby('device'):
         res = {'label': name, 'data': g[['x', 'y']].to_dict(orient='records'),
                'fill': False, 'borderColor': g['borderColor'].any()}
         datasets.append(res)
-    results = {'labels': labels, 'datasets': datasets}
+    results = {'datasets': datasets}
     return JsonResponse(results, safe=False)
 
 
@@ -70,17 +72,20 @@ def device_humidity(request, *args, **kwargs):
         sensor_date_time__gte=last_24_hours).order_by('-sensor_date_time')
     frame = pd.DataFrame(
         [dict(device=x.sensor.readable_name,
-              x=x.sensor_date_time, y=x.humidity, borderColor=x.sensor.color)
+              x=x.sensor_date_time, y=x.humidity,
+              borderColor=x.sensor.color)
          for x in objects])
 
-    labels = _hourly_range(48)
+    if frame.empty:
+        return JsonResponse({'datasets': []})
+
     datasets = []
     frame['x'] = frame['x'].dt.strftime(date_format)
     for name, g in frame.groupby('device'):
         res = {'label': name, 'data': g[['x', 'y']].to_dict(orient='records'),
                'fill': False, 'borderColor': g['borderColor'].any()}
         datasets.append(res)
-    results = {'labels': labels, 'datasets': datasets}
+    results = {'datasets': datasets}
     return JsonResponse(results, safe=False)
 
 

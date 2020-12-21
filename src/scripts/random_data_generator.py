@@ -3,11 +3,15 @@
 Script used to generate random sensor data
 """
 import datetime
+import os
 import pprint
 import random
 
 import click
 import requests
+
+
+HOSTNAME = 'web' if bool(os.getenv('IN_CONTAINER', 0)) else 'localhost'
 
 
 def _generate_random_ids(count):
@@ -21,7 +25,7 @@ def _generate_time_series(from_date=None, to_date=None):
     diff = end_date - beginning_date
     half_hours_elapsed = int(diff.total_seconds() / (30 * 60))  # get elapsed time in 30 minute increments
     date_time_format = '%Y-%m-%d %H:%M'
-    return [(from_date + datetime.timedelta(minutes=30*x)).strftime(date_time_format)
+    return [(beginning_date + datetime.timedelta(minutes=30*x)).strftime(date_time_format)
             for x in range(half_hours_elapsed)]
 
 
@@ -61,7 +65,7 @@ def _generate_random_data(device, from_date=None, to_date=None, neighbors=None):
 
 
 def post_sensor_identifier(data, token):
-    url = "http://localhost:8000/api/sensors/"
+    url = f"http://{HOSTNAME}:8000/api/sensors/"
     payload = dict(identifier=data['name'], color=data['color'])
     results = requests.post(url, json=payload, headers={'Authorization': f'Token {token}'})
     pprint.pp(results.json())
@@ -69,7 +73,7 @@ def post_sensor_identifier(data, token):
 
 
 def post_sensor_readings(data, token):
-    url = "http://localhost:8000/api/remote/upload/"
+    url = f"http://{HOSTNAME}:8000/api/remote/upload/"
     results = requests.post(url, json=data, headers={'Authorization': f'Token {token}'})
     if results.status_code != 201:
         print('error')
@@ -96,7 +100,7 @@ def main(from_date, to_date, device_count, token):
 
     for device in devices:
         other_devices = [x for x in device_names if x != device['name']]
-        neighbors = random.sample(other_devices, random.randint(1, 5))  # each will have 3 neighbors
+        neighbors = random.sample(other_devices, random.randint(1, 5))  # each will have random number of neighbors
         device_data = _generate_random_data(device, from_date=from_date, to_date=to_date, neighbors=neighbors)
         pprint.pp(device_data)
         post_sensor_readings(device_data, token)

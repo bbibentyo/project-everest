@@ -6,7 +6,6 @@ $(function(){
             new Chart($tempChart[0].getContext("2d"), {
             type: 'line',
             data: {
-                // labels: data.labels,
                 datasets: data.datasets
             },
             options: {
@@ -45,7 +44,7 @@ $(function(){
             new Chart($humidity[0].getContext("2d"), {
             type: 'line',
             data: {
-                labels: data.labels,
+                // labels: data.labels,
                 datasets: data.datasets
             },
             options: {
