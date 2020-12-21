@@ -13,9 +13,8 @@ class ProximityInline(admin.TabularInline):
 
 @admin.register(models.SensorData)
 class SensorDataAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'sensor', 'date_received', 'temperature', 'humidity',
-                    'x_coordinate', 'y_coordinate', 'z_coordinate')
-    list_filter = ('sensor', 'date_received')
+    list_display = ('pk', 'sensor', 'sensor_date_time', 'date_created', 'temperature', 'humidity')
+    list_filter = ('sensor', 'sensor_date_time', 'date_created')
     inlines = [ProximityInline]
 
 

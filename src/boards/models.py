@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 
 class Sensor(models.Model):
-    identifier = models.CharField(max_length=20, db_index=True)
+    identifier = models.CharField(max_length=20, unique=True, db_index=True)
     name = models.CharField(max_length=50, blank=True, null=True, db_index=True)
     owner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -24,7 +24,8 @@ class Sensor(models.Model):
 
 
 class SensorData(models.Model):
-    date_received = models.DateTimeField(default=timezone.now)
+    date_created = models.DateTimeField(auto_now_add=True)
+    sensor_date_time = models.DateTimeField(default=timezone.now)
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     temperature = models.FloatField()
     humidity = models.FloatField()

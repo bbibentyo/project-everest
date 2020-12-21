@@ -31,7 +31,7 @@ $(function(){
         });
         },
         error: function (request, status, err) {
-            console.error(request.responseText);
+            console.error(err);
             console.log("completed with status: " + status);
             console.log("error message: " + err)
         }
@@ -70,7 +70,6 @@ $(function(){
         });
         },
         error: function (request, status, err) {
-            console.error(request.responseText);
             console.log("completed with status: " + status);
             console.log("error message: " + err)
         }

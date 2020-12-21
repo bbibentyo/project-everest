@@ -100,9 +100,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
-STATIC_ROOT = 'static/'
+
+if os.path.exists('/code/'):
+    STATIC_ROOT = '/code/staticfiles'
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'code', 'static')
+
+STATICFILES_DIRS = (os.path.join('static'),)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
