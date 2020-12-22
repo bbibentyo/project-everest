@@ -1,3 +1,4 @@
+import copy
 import datetime
 
 import pandas as pd
@@ -15,6 +16,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ParseError
 
 from boards import models, serializer
 
@@ -190,7 +192,12 @@ class SensorDataView(APIView):
         return status.HTTP_201_CREATED if any(x['status'] for x in results) else status.HTTP_400_BAD_REQUEST
 
     def post(self, request, *args, **kwargs):
-        data = request.data
+        body = copy.deepcopy(request.body)
+        try:
+            data = request.data
+        except ParseError:  # some strings contain misplaced \n, quotes causing parsing error
+            data = body.decode().replace("\"", "").replace("\n", "")
+
         if isinstance(data, str):  # when user sends a single string as sensor value
             lines = data.split('\n')
             results = [_parse_sensor_data_and_add(line) for line in lines]
