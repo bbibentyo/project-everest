@@ -1,3 +1,4 @@
+import collections
 import copy
 import datetime
 
@@ -38,7 +39,7 @@ order by last_seen desc limit %s"""
 
 @login_required()
 def homepage(request, *args, **kwargs):
-    return render(request, 'home.html', context={'devices': _get_recently_seen_devices()})
+    return render(request, 'home.html', context={'devices': _get_recently_seen_devices(10)})
 
 
 def _hourly_range(delta=24):
@@ -89,6 +90,34 @@ def device_humidity(request, *args, **kwargs):
         datasets.append(res)
     results = {'datasets': datasets}
     return JsonResponse(results, safe=False)
+
+
+def proximity(request, *args, **kwargs):
+    distance_query = """with summary as (select bs.sensor_id as source, bp.target_id destination, max(bp.batch_id) as last_seen_id
+from boards_sensordata bs
+join boards_proximitydata bp on bs.id = bp.batch_id
+group by bs.sensor_id, bp.target_id)
+select source, destination, distance, color
+from summary s left join boards_proximitydata b1
+on s.last_seen_id = b1.batch_id and s.destination = b1.target_id
+join boards_sensor b on b1.target_id = b.id"""
+    with connection.cursor() as cursor:
+        cursor.execute(distance_query)
+        results = collections.defaultdict(list)
+        edges = []
+
+        # remove duplicates
+        for x in cursor.fetchall():
+            edge = {"from": x[0], "to": x[1], "label": str(int(x[2])), "color": x[3]}
+            if x[0] not in results[x[1]]:
+                edges.append(edge)
+                results[x[0]].append(x[1])
+
+    with connection.cursor() as cursor:
+        cursor.execute("select id, identifier as label, color from boards_sensor")
+        nodes = [{"id": x[0], "label": x[1], "color": x[2]} for x in cursor.fetchall()]
+
+    return JsonResponse({'nodes': nodes, 'edges': edges}, safe=False)
 
 
 def login_view(request, *args, **kwargs):

@@ -72,6 +72,20 @@ $(function(){
             console.log("completed with status: " + status);
             console.log("error message: " + err)
         }
+    });
+
+    // plot proximity
+    let $proximityContainer = document.getElementById("proximity");
+    $.ajax({
+        url: $("#proximity").data("url"),
+        success: function (data) {
+            new vis.Network($proximityContainer, data, {});
+        },
+        error: function (request, status, err){
+            console.log("completed with status: " + status);
+            console.log("error message: " + request.responseText);
+        }
     })
+
 });
 

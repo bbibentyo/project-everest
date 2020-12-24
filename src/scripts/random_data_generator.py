@@ -2,6 +2,7 @@
 """
 Script used to generate random sensor data
 """
+import collections
 import datetime
 import os
 import pprint
@@ -47,9 +48,19 @@ def _generate_device_data(count=5):
     return [{'name': x[0], 'color': x[1]} for x in zip(device_names, device_colors)]
 
 
-def _generate_neighbor_info(device_names):
-    return [dict(name=device_name, distance=random.randint(1, 20))
-            for device_name in device_names]
+def _generate_neighbor_info(devices):
+    neighborhood = collections.defaultdict(dict)
+    device_names = set(x['name'] for x in devices)
+    for dn in device_names:
+        other_devices = [x for x in device_names if x != dn]
+        while len(neighborhood[dn]) < 3:
+            neighbor = random.choice(other_devices)
+            if neighbor in neighborhood[dn]:
+                continue
+            distance = random.randint(1, 20)
+            neighborhood[dn][neighbor] = distance
+            neighborhood[neighbor][dn] = distance
+    return neighborhood
 
 
 def _generate_random_data(device, from_date=None, to_date=None, neighbors=None):
@@ -59,7 +70,8 @@ def _generate_random_data(device, from_date=None, to_date=None, neighbors=None):
         data = dict(name=device['name'], temperature=random.randint(10, 40),
                     humidity=random.randint(0, 60), date=ts)
         if neighbors:
-            data['neighbors'] = _generate_neighbor_info(neighbors)
+            neighborhood = neighbors.get(device['name'], {})
+            data['neighbors'] = [{'name': k, 'distance': v} for k, v in neighborhood.items()]
         results.append(data)
     return results
 
@@ -89,7 +101,9 @@ def post_sensor_readings(data, token):
 @click.option('-f', '--from-date', 'from_date', help="start date in format: YYYYMMDD")
 def main(from_date, to_date, device_count, token):
     devices = _generate_device_data(device_count)
-    device_names = set(x['name'] for x in devices)
+    print('generating proximity data')
+    neighbors = _generate_neighbor_info(devices)
+
     if from_date:
         from_date = datetime.datetime.strptime(from_date, '%Y%m%d')
     if to_date:
@@ -99,8 +113,7 @@ def main(from_date, to_date, device_count, token):
         post_sensor_identifier(device, token)
 
     for device in devices:
-        other_devices = [x for x in device_names if x != device['name']]
-        neighbors = random.sample(other_devices, random.randint(1, 5))  # each will have random number of neighbors
+        print(f'generating data for sensor: {device["name"]}')
         device_data = _generate_random_data(device, from_date=from_date, to_date=to_date, neighbors=neighbors)
         pprint.pp(device_data)
         post_sensor_readings(device_data, token)

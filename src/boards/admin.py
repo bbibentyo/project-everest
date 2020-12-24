@@ -5,6 +5,7 @@ from boards import models
 @admin.register(models.Sensor)
 class SensorAdmin(admin.ModelAdmin):
     list_display = ('pk', 'identifier', 'name', 'color', 'owner', 'date_created')
+    list_display_links = ('pk', 'identifier')
 
 
 class ProximityInline(admin.TabularInline):
